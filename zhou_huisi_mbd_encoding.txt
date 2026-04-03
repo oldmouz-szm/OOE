@@ -1,0 +1,515 @@
+ 计算机研究与发展                                                                                                  DOI：10.7544/issn1000-1239.202110794
+ Journal of Computer Research and Development                                                                               60（1）：95−102，2023
+
+
+
+
+基于模型诊断的一种新编码方法
+
+周慧思 欧阳丹彤 田新亮 张立明
+（吉林大学计算机科学与技术学院                           长春      130012）
+（符号计算与知识工程教育部重点实验室（吉林大学）                                           长春       130012）
+（zhouhsi@163.com）
+
+
+
+A Novel Encoding for Model-Based Diagnosis
+
+Zhou Huisi, Ouyang Dantong, Tian Xinliang, and Zhang Liming
+（College of Computer Science and Technology, Jilin University, Changchun 130012）
+（Key Laboratory of Symbol Computation and Knowledge Engineering (Jilin University), Ministry of Education, Changchun 130012）
+
+
+  Abstract     Model-based diagnosis (MBD), a well-known approach in the AI field, aims at identifying the root cause of
+  a diagnosis problem. Since computing diagnosis is computationally challenging, some MBD algorithms by modifying
+  the model encode are presented successively, such as Dominator-Oriented Encoding (DOE) approach. In this study,
+  we propose a new encoding process, Observation-Oriented Encoding (OOE), which uses two ideas to simplify MBD
+  model. Firstly, we consider more filtered edges based on observation of system and output of dominated components.
+  This idea can reduce the number of encoded clauses for diagnosis system and observations. Secondly, more
+  components are filtered by finding out observation-based filtered nodes. This approach reduces the number of encoded
+  clauses for components. All of them can reduce the number of encoded clauses efficiently. Furthermore, experiment
+  evaluations on ISCAS85 and ITC99 benchmarks, which contain well-known combinational circuits used for MBD
+  algorithms, show that OOE approach generates less weighted conjunctive normal forms (WCNF) and makes diagnosis
+  easier with maximum satisfiability (MaxSAT) solver, compared with DOE, the latest encoding algorithms for MBD,
+  and Basic Encoding (BE), which is the traditional encoding approach for MBD. In addition, OOE approach returns a
+  solution in a shorter time than DOE and BE approaches.
+  Key words model-based diagnosis (MBD)；maximum satisfiability (MaxSAT)；dominator-oriented encoding (DOE)；
+  top-level diagnosis (TLD)；cardinality-minimal diagnosis
+
+  摘    要     基于模型诊断（model-based diagnosis，MBD）是人工智能诊断领域中著名的诊断求解方法之一，
+  旨在识别诊断问题的根本原因.由于求解诊断解在计算上具有挑战性，一些 MBD 算法提出通过修改模型
+  的编码来提高诊断效率，如面向统治者的编码（dominator-oriented encoding, DOE）方法.面向观察的编码
+  （observation-oriented encoding，OOE）方法使用 2 种方法对 MBD 模型进行约简. 首先，利用系统观测和统
+  治组件输出的一些过滤边来约简系统描述和观测.其次，通过查找基于观测的过滤节点来过滤更多的组
+  件, 进而有效约简组件的编码规模. 此外，在 ISCAS85 和 ITC99 基准测试用例上的实验结果表明，与目前
+  最新的 MBD 编码方法 DOE 和传统的基础编码（basic encoding , BE）相比，上述 2 种约简方法有效减少
+  了 MBD 实例的编码子句数量比，降低 MaxSAT 求解器求解诊断的难度，进而能在更短的时间内返回一个
+  诊断解.
+
+
+  收稿日期：2021−08−02；修回日期：2022−06−07
+  基金项目：国家自然科学基金项目（62076108, 61872159, 61672261）
+            This work was supported by the National Natural Science Foundation of China (62076108, 61872159, 61672261).
+  通信作者：张立明 (limingzhang@jlu.edu.cn)
+    96                                                                                                                     计算机研究与发展            2023，60 （1）
+
+
+    关键词            基于模型诊断；最大可满足性问题；基于统治关系的编码；顶层诊断；极小势诊断
+
+    中图法分类号           TP391
+
+          当预期的系统观测和真实的系统观测不一致时，                                                               索算法的有效性.SAFARI 随机删除一个组件，然后判
+这时系统就存在故障，需要对故障进行诊断.基于模                                                                       断候选解是否仍然是一个诊断，直到没有组件可以
+                                                            [1]
+型诊断 (model-based diagnosis， MBD) 是根据系统的                                                       删除.显然，SAFARI 不能保证返回的诊断解是极小势
+描述利用基于推理的方法解释系统观测不一致的过                                                                        诊断.近年来，随着 SAT 及 MaxSAT 求解器性能的大
+程.几十年来，MBD 问题已经广泛应用于的各个领域，                                                                    幅提升，使得基于 SAT 的诊断方法引起了广泛的关注.
+                              [2]                             [3]                                              [6]
+包括调试关系规范 、诊断系统调试 、电子表格调                                                                       Feldman 等人 提出将诊断的电路编码成 MaxSAT 问
+    [4]                         [5]
+试 和软件故障定位 等领域.                                                                                题，该方法比 SAFARI 运行时间更长.相比之下，Metodi
+                                                                                                    [20]
+          文章的主要贡献包括 3 个方面:                                                                    等人           提出的 SATbD 考虑电路的直接统治者，并找
+                                                                                                                                                     [22]
+          1) 提出利用观测的扇入过滤边和扇出过滤边对                                                              出 所 有 极 小 势 诊 断.2015 年 ， Marques-Silva 等 人                    提
+边 进 行 过 滤 的 约 简 方 法.这 2 种 边 都 是 冗 余 的 ， 因 为                                                   出一种面向统治者的编码 (dominator oriented encoding，
+它们的值在进行诊断求解过程中是必须进行传播的值.                                                                      DOE) 方法，通过过滤掉一些节点和一些边的方法将
+          2) 提出利用观测的过滤节点来进行过滤的约简                                                              MBD 编 码 为 MaxSAT.作 为 一 种 先 进 的 编 码 方 法 ，
+方法.对于基于观察的过滤节点而言，它所有的扇入                                                                       DOE 利用了系统的结构属性，有效地缩减了 MBD 问
+和扇出都是固定的，即它的扇入和扇出之间不存在                                                                        题 编 码 后 子 句 集 的 规 模.虽 然 DOE 保 证 返 回 基 数 最
+冲突.                                                                                           小的诊断，但它没有考虑与观察有关的多余带权重
+          3) 在 ISCAS85 和 ITC99 基 准 测 试 实 例 上 的 实 验                                            的合取范式 (weighted conjunctive normal form， WCNF).
+结果表明，提出的方法可以有效缩减 MBD 问题编码                                                                     本 文 提 出 一 种 面 向 观 察 的 编码 (observation-oriented
+时 生 成 的 子 句 规 模 ， 进 而 降 低 最 大 可 满 足 性 问题                                                      encoding， OOE) 方法，该方法在将 MBD 编码到 Max-
+(maximum satisfiability， MaxSAT) 求 解 诊 断 问 题 的 难                                              SAT 时能有效减少子句集规模.此外，本文在调用相
+度，有效地提高了诊断求解效率.                                                                               同的 MaxSAT 求 解 器 情 况 下 ， 将 OOE 方 法 与 基 础 编
+                                                                                              码（basic encoding， BE）和 DOE 进行了比较.实验结果
+1         相关工作                                                                                表明，OOE 方法有效提高了 MBD 问题的求解效率.
+
+
+          近几十年来，越来越多的研究者投入到 MBD 问                                                             2     基于模型的诊断问题
+题的研究中，提出了许多求解算法，其中包括单个观
+                     [6-11]                                               [12-15]
+测的 MBD 算 法                    和 多 观 测 的 MBD 算 法                                  .目 前               本节主要介绍 MBD 问题的相关定义及概念.
+用于解决单个观测下的 MBD 问题算法为：随机搜索                                                                     2.1   基本定义
+                                                                                                    诊断问题可以被定义为一个三元组 ⟨SD,Comps,Obs⟩，
+          [6,16]                             [7]
+算法              、基于编译的算法 ，基于广度优先搜索的算
+    [8]                                                                             [9-10]
+法 、基于可满足性问题 (satisfiability，SAT) 的算法                                                      、   其中，SD 表示诊断问题的系统描述，Comps 代表组件
+                                      [11]       [17-21]
+基于冲突导向的算法                                    等          .在 这 些 算 法 中 ， 基 于                    的 集 合 ，Obs 代 表 一 个 观 测 .假 定 所 有 组 件 的 状 态 是
+广度优先搜索的算法及其改进算法利用了树结构.此                                                                       正常的情况下，当系统的模型描述和观测出现不一
+类算法检查树的每个节点是否表示最小诊断解，这                                                                        致时，我们称存在一个诊断问题.也就是:
+类方法是完备的.显然，只要有足够的时间，这类方法                                                                                   S D ∧ Obs ∧ {¬AB (c)| c ∈ Comps} |=⊥ ，      （1）
+可以得到所有的诊断解.然而，这类方法是相当耗时                                                                       其中，AB(c)=1 代表组件 c 是故障的，相反，AB(c)=0 代
+的，它们在解决大型现实实例问题时是不太现实的.                                                                       表组件 c 是正常的.下面我们给出诊断的定义.
+随着计算机处理器的快速发展，一些并行化技术也                                                                              定义 1. 诊 断 .给 定 一 个 诊 断 问 题 D=⟨SD,Comps,
+                                                                                                                     [1]
+
+                                                                    [8]
+被用于 MBD 求解问题中，Jannach 等人 通过并行地                                                                Obs⟩.一 个 诊 断 被 定 义 为 一 组 组 件 ∆的 集 合 ， 其 中 ∆ ⋤
+构 造 碰 集树 (hitting set-tree， HS-Tree) 返 回 所 有 诊 断 .                                            Comps，当
+基 于 编 译 的 方 法 通 过 利 用 给 定 的 系 统 层 次 结 构和                                                                        S D ∧ Obs ∧ {AB (c)| c ∈ ∆}∧
+                       [7]
+DNF 编码的方式 计算候选解的方法也显示出它们                                                                                       {¬AB (c)| c ∈ Comps − ∆} ⊭⊥ .
+                                                                                              其 中 ∆是 一 个 极 小 子 集 诊 断 当 且 仅 当 不 存 在 当 前 诊
+                                    [6]
+的优势.SAFARI 算法 证明了在 MBD 问题上随机搜
+周慧思等：基于模型诊断的一种新编码方法                                                                                                                             97
+
+
+断的一个子集 ∆′ ⋤∆是一个诊断.诊断解的长度称为诊                                        申明这些组件是健康的)，就可以计算 TLD.
+断的势， ∆是一个极小势诊断当且仅当不存在另外一
+                                                                          i1          z1                                    o1
+                                                                                 N1
+个诊断解 ∆′满足∣ ∆∣>∣∆′∣.                                                                                               N5
+                                                                          i3
+2.2    将诊断问题编码为 MaxSAT                                                                 z2
+                                                                          i4     N2
+      许多 MBD 问 题 在 求 解 时 先 被 编 码 为 MaxSAT
+       [14-15,22]                                                                                           z3
+问题               ， 下 面 本 文 介 绍 编 码 过 程 .当 一 个 MBD 问                       i2                          N3
+题 被 编 码 为 一 系列 WCNF 子 句 集 时 ， 诊 断 系 统 中 的
+                                                                                                           z4
+                                                                                                    N4                 N6
+组件和电路线分别用变量表示，它们的值用文字表                                                    i5                                                     o2
+
+示.下 面 我 们 分 别 表 示 有 2 个 输 入 的 与 非 门 (nand2)、                                          Fig. 1        C17 circuit
+与门 (and2)、与或门 (nor2)、或门 (or2) 的公式：                                                     图1           C17 电路
+      Fnand2_c ≜ Clauses(onand2_c ↔ ¬(inand2_c1 ∧ inand2_c2 )) ,
+         Fand2_c ≜ Clauses(oand2_c ↔ (iand2_c1 ∧ iand2_c2 )) ,     3   求解基于模型的诊断问题的 DOE 方法
+        Fnor2_c ≜ Clauses(onor2_c ↔ ¬(inor2_c1 ∨ inor2_c2 )) ,
+            For2_c ≜ Clauses(oor2_c ↔ (ior2_c1 ∨ ior2_c2 )) .          为了简化 MBD 到 MaxSAT 的编码过程，缩减被
+      例如，对于一个 NAND 组件 c 而言， inand_c1和 inand_c2                     编码的“门”生成的子句规模.DOE 方法利用“门控制
+分 别 代 表 组件 c 的 输 入 ， onand_c是 组 件 c 的 输 出 .由 一                     关系”，同时计算 TLD.除此之外，一些曾在 DOE 方法
+组组件组成的系统 SD 的表示公式为                                                 中被提出的概念如阻塞连接及骨干组件，将在本节
+                     SD≜     ∧ (AB( c) ∨ Fnandand_c )，             定义中给出解释.
+                           c∈Comps
+                                                                       定义 4. 骨架节点 (backbone node, B-Node) .我们
+                                                                                                                                      [22]
+
+此处，代表组件 c 的编码.在一个观测中，观测可以表
+                                                                   称一个组件为骨架节点当且仅当其是一个被统治的
+示为
+                                                                   组件且它的扇出对于任何一个 TLD 有固定的值.
+      Obs ≜ v.v 和一个电路的逻辑值相关，当 v = 1代表
+                                                                       考 虑图 1 中 组 件 N1， N1 被 N5 统 治 ， 当 给 定 一 个
+电路逻辑值为正，当 v = 0 代表电路逻辑值为负.
+                                                                   观 测 时 ，N1 的 所 有 输 入 是 固 定 的 ， 也 就 是 说 ， i1 和 i3
+      WCNF 中的子句 cl 的权重用 ω(cl) 表示，我们分
+                                                                   有 固 定 的 值 ， 当 求 解 一个 TLD 时 ， N1 的 扇 出 就 有 固
+别设置 SD，Comps， Obs 相关的子句为：                                          定的值，所以 N1 是一个 B-Node.
+      1) 对于 SD 和 Comps 中的子句被设置为硬子句，                                    定义 5. 阻 塞 边 (blocked edge， B-Edge) .我 们 称
+                                                                                                                            [22]
+
+ω (cl) := num (Obs) + 1，其中 num (Obs)代表观测的数量;                       组 件 的 一 个 扇 入边 E 是 一 个 阻 塞 边 ， 如 果 边 的 值 不
+      2) Obs 中的子句被设置为软子句， ω (cl) := 1.                             会对该组件的扇出起作用.
+      在基于 SAT 的方法中，MBD 问题被编码为一组                                        考 虑图 1 中 的 N2， 当 给 定 一 个 观 测 Obs={i4=0}，
+子 句 ， 然 后 通 过 迭 代 调用 SAT 或 MaxSAT 求 解 器 来                          N2 的 输 出 被 确 定 为 1， 无 论 i3 的 值 是 什 么 ， 因 此 i3 边
+计算诊断.通过添加阻塞子句可以避免相同的诊断解                                            是一个阻塞边.
+被多次计算.利用诊断系统的结构属性是一种可行的                                                定义 6. 过滤节点
+                                                                                             [22]
+                                                                                                 .我们称组件 B 为一个过滤节
+方法，这种方法在许多基于 SAT 的诊断算法中得到                                          点，如果它的所有扇出边都是过滤边.
+           [23-24]
+了应用                 .相 应 地 ， 诊 断 中 的 统 治 节 点 和 顶 层 诊 断                 定义 7. 过 滤 边
+                                                                                      [22]
+                                                                                            .我 们 称 边 E 为 一 个 过 滤 边 ， 如
+(top-level diagnosis，TLD) 也是重要的概念.                                 果它是一个 B-Node 或者它的扇出组件是一个过滤节点.
+      定义 2. 统治节点
+                                [20]
+                                     .给定一个组件 G1 和 G2，如果                由于 N1 是 一 个 被 统 治 组 件 ， 给 定 一 个 观 测
+从 G1 到 电 路 的 输 出 的 所 有 路 径 都 包 含 G2， 则 称 G2                        Obs={i1=1}，当 z1 的值 (z1=0) 被传播后，z3 的值将不会
+是 G1 的统治节点.换句话说，G1 是被 G2 统治的节点.                                    对 N5 的 输 出 起 作 用 .也 就 是 说 ， N5 的 输 出 值 是 固 定
+      定义 3. 顶层诊断解 .称 ∆为一个顶层诊断解，如
+                                       [20]
+                                                                   的.因 此 ， ⟨N3， N5⟩是 一 个 B-Edge， 因 此 ， ⟨N3， N5⟩是 一 个
+果它是一个极小势诊断且不包含任何统治组件.                                              过滤边.假定 ⟨N3，N6⟩也是一个过滤边，这时 N3 的所有
+      以图 1 为 例 ， 由 于 N1 到 达 系 统 输 出 的 路 径 是 唯                      输入边都是过滤边，那么组件 N3 是一个过滤节点.具
+一 的 ， 且 包括 N5， 所 以 N1 被 N5 统 治 .假 定 有 观 测 i1=                      体的 DOE 方法如算法 1 所示:
+                                                                       算法 1. 编码 MBD 到 MaxSAT 的 DOE 方法 .
+                                                                                                                                         [22]
+i2= i3= i5= o1= o2=1, i4=0, N6 是 一 个 TLD， 因 为 N6 不 被
+任何组件统治.通过将统治组件编码到硬子句中 (即                                               输入：SD， Comps， Obs；
+    98                                                                                      计算机研究与发展             2023，60 （1）
+
+
+         输出：编译后的模型.                                                     在 OOE 方法中，被统治的组件编码为硬子句，这
+         ① repeat                                                  种设置与 DOE 方法中的设置是相同的.
+         ②       Dominators ←所有统治节点；                                    在 OOE 编译方法的预处理过程中，不仅过滤边
+         ③       BackboneComps ←所有骨架组件；                            和 过 滤 节 点 不 被 编 码为 WCNF， 而 且 基 于 观 测 的 过
+         ④       BlockedConnections ←所有阻塞连接；                       滤边和基于观测的过滤节点也不被编码为 WCNF.
+         ⑤       if 到达最大迭代次数 then                                       命题 1. 假 定 ζ 为 使 用 DOE 方 法 求 解 出 的 一 个
+         ⑥          break；                                         TLD， 那 么 使 用 OOE 方 法 可 以 求 解 出 一 个 和 ζ 具 有
+         ⑦       end if                                            相同势的 TLD，ζ ’.
+         ⑧ until NoMoreChanges；                                         考 虑 观测 Obs = { i1 = 1, i2 = 1, i3 = 1, i4 = 1, i5 = 1,
+         ⑨ M ← 产生 MaxSAT 模型.                                       o1 = 1, o2 = 1}， 我 们 详 细 解 释 DOE 方 法 和 OOE 方 法
+                                                                   在 进 行 编 码 时 的 约 简 子 句 的 细 节.在 第 1 次 迭 代 中 ，
+4        OOE 方法                                                    被统治节点为{N1, N4}.N1 被 N5 统治，N4 被 N6 统治.之
+                                                                   后 N1 的 输 出 值 0 被 传 播 ， N5 的 输 出 值 是 固 定 的 ， 所
+         文献 [22] 中 的 实 验 表 明 了 DOE 方 法 在 求 解                       以 ⟨N3， N5⟩是 一 个 B-Edge.在 第 2 次 迭 代 时 ， 因 为 过 滤
+MBD 问 题 上 的 有 效 性 .在 本 节 中 ， 我 们 将 介 绍 OOE                         边 ⟨N3，N5⟩，所以 N3 被 N6 统治.随后, N2 由 N6 统治.除此
+方 法 及 该 方 法 中 为 了 改 进 基于 MaxSAT 的 MBD 编                            之 外 ，i2， i5 被 过 滤 ， 成 为 过 滤 边 .这 就 是 所 有 的 DOE
+译过程用到的其他过滤节点和过滤边的概念.                                               方 法 的 约 简 过 程 及 贡 献.剩 余 的 组 件 {N5, N6}以 及 边
+         定义 8. 基于观测的扇入过滤边.我们称边 E 为一                                ⟨N1，N5⟩， ⟨N3，N6⟩， ⟨N4，N6⟩均在 DOE 方法中没有被考虑
+个基于观测的扇入过滤边，如果它是一个系统的输                                             到.
+入或者它是一个统治组件的一个固定输出边.                                                    在 OOE 方法中，为了考虑将更多的节点和边进
+         此处继续讨论观测 Obs = {i1 = 1, i2 = 1, i3 = 1, i4 =              行约简，基于观测的过滤边和基于观测的过滤节点
+1, i5 = 1, o1 = 1, o2 = 1}， 在 第 1 次 迭 代 中 ， i1, i2, i3, i4, i5     被提出用于减少生成的 WCNF 子句的数量.算法 2 概
+是 基 于 观 测 的 扇 入 过 滤 边.在 DOE 方 法 过 滤 了 一 些                          述了 OOE 方法的伪代码.
+节点和边之后，因为 N1，N4，N3，N2 依次成为统治节点                                          算法 2. 编码 MBD 到 MaxSAT 的 OOE 方法.
+之 后 ， ⟨N1， N5⟩， ⟨N3， N6⟩， ⟨N2， N4⟩， ⟨N4， N6⟩变 成 了 基 于 观                 输入：SD， Comps， Obs；
+察的扇入过滤边.                                                                输出：编译后的 WCNF 子句.
+         定义 9. 基于观测的扇出过滤边.我们称边 E 为一                                     ① repeat
+个基于观测的扇出过滤边，如果它是一个系统的输出.                                                ②      Dominators ←所有统治节点；
+         给定观测 Obs={ i1 = 1, i2 = 1, i3 = 1, i4 = 1, i5 = 1, o1 =        ③      BackboneComps ←所有骨架组件；
+1, o2 = 1}，o1 和 o2 均为基于观测的扇出过滤边.                                        ④      BlockedConnections ←所有阻塞连接；
+         定义 10. 基于观测的过滤边.我们称边 E 为一个                                     ⑤      if 到达最大迭代次数 then
+基于观测的过滤边，如果它是一个基于观测的扇出                                                  ⑥          break；
+过滤边或者它是一个基于观测的扇入过滤边.                                                    ⑦      end if
+         初始状态下，系统的输入输出是固定的.因此，任                                         ⑧ until NoMoreChanges；
+何基于观测的边缘边都是固定的.                                                         ⑨ edgeStack ←所有基于观测的过滤边；
+         定义 11. 基 于 观 察 的 过 滤 节 点 .我 们 称 一 个 组 件                        ⑩ nodeStack ←所有基于观测的过滤节点；
+B 为基于观察的过滤节点，如果该组件的扇入和扇出                                                ⑪ while edgeStack ≠ NULL do
+都是固定的，并且扇出值与扇入值在逻辑上一致，或                                                 ⑫          e←edgeStack 中的栈顶元素；
+者该组件是一个 B-Node.                                                         ⑬          Propagation(e)；
+         给定一个观测 Obs= { i1 = 1, i2 = 1, i3 = 1, i4 = 1, i5 =             ⑭      node←nodeStack 中的栈顶元素；
+1, o1 = 1, o2 = 1}，在 DOE 编译过程中，因为 N1，N2，N3，                             ⑮      Propagation(node)；
+N4 都是 B-Node，所以它们都是基于观测的过滤节点.                                           ⑯      if 获得一个新的基于观测的过滤 then
+此外，N5 也是一个基于观测的过滤节点因为它有一                                                ⑰            edgeStack ← Push (E) ；
+个输入值为 0，这与它的输出值 1 是一致的.                                                 ⑱      end if
+周慧思等：基于模型诊断的一种新编码方法                                                                                                                                            99
+
+
+    ⑲         if 获得一个新的基于观测的过滤节点                                            一种单元传播技术用于传播行⑫和行⑭中的 e 和
+                node then                                                   node 变量的赋值.
+    ⑳            nodeStack ← Push (node) ；                                                    给 定 观测 Obs = { i1 = 1, i2 = 1, i3 = 1, i4 = 1, i5 = 1,
+    ㉑         end if                                                        o1 = 1, o2 = 1}， 图 2 分 别 为 算 法 1 和 算 法 2 的 编 译 结
+    ㉒ end while                                                             果.在 图 2 中 ， 虚 线 表 示 过 滤 边 (如 图 2(a) 的 ⟨N3, N5⟩)
+    算法 2 一直迭代至没有发现新的基于观测的过                                                  或基于观测的过滤边 (如图 2(b) 的 ⟨N1, N5⟩).同样地，虚
+滤边和过滤节点.其中，算法 2 的行①~⑧和文献 [22]                                               线点表示的组件代表过滤节点或基于观测的过滤节
+中提出的 DOE 方法的预处理部分相同，经过 DOE 预                                                点 (如 图 2(a) 的 N1).过 滤 边 、 过 滤 节 点 、 基 于 观 测 的
+处理后，初步地，我们找到基于观测的过滤边和基于                                                     过 滤 边 和 基 于 观 测 的 过 滤 节 点 均 将 不 会 被 编 译成
+观 测 的 过 滤 节 点.算 法 2 在 行⑨ ~⑩ 分 别 将 初 步 得 到                                   WCNF 子 句 .如 图 2 所 示 ， 仅 有 实 线 表 示 的 元 件 和 电
+的基于观测的过滤边和基于观测的过滤节点压入栈                                                      路 线 被 编 码为 WCNF 子 句 ， 虚 线 表 示 的 元 件 和 电 路
+中.在 行 ⑪~㉒， 算 法 2 找 出 所 有 的 基 于 观 测 的 过                                      线不被编码为 WCNF 子句.在这个例子中，在 OOE 方
+滤边和基于观测的过滤节点，旨在减少生成的 WCNF                                                   法 之 后 ， 只有 1 个 组 件 和 3 条 电 路 线 最 终 被 编 码 为
+子句的数量.在行⑬和行⑮中，函数 Propagation 是                                              WCNF 子句，图 2(b) 中用椭圆表示.
+
+                 1               0                                                               1                0
+         i1              N1                                    o1                i1                                                               o1
+                                                                                                          N1                             N5
+                                                     N5
+                 1                                                  1                            1                                                1
+         i3                                                                      i3
+                                 0                                                                                0
+                 1       N2                                                                      1        N2
+         i4                                                                      i4
+
+
+                                      N3                                                                               N3
+         i2                                    1                                 i2                                               1
+                 1                                                                               1
+                                                                                                                                                  1
+                                               1                        1                                                     1
+                 1                   N4                   N6                                     1                    N4                     N6
+         i5                                                     o2               i5
+                                                                                                                                                       o2
+                         使用DOE方法约简后的结果                                                                    使用OOE方法约简后的结果
+
+                                      Fig. 2   Comparison between DOE and OOE in reduction detail
+                                               图2   DOE 方法和 OOE 方法在约简细节的比较
+
+
+                                                                            求 得 一 个 诊 断 解 的 运 行 时 间.在 实 验 中 ， 我 们 设 置
+5   实验结果                                                                    MaxSAT 求解的时间上限为 0.1 s.如图 3 和图 4 所示，
+                                                                                               0.10
+
+    在本节中，我们将在 MBD 中提出的预处理方法
+                                      [22]
+与目前最好的预处理方法 DOE                              及不用预处理过程                                          0.08
+
+的 编 码 方法 BE 进 行 了 对 比 .在 编 码 为 MaxSAT 问 题
+                                                                              BE方法的运行时间 / s
+
+
+
+
+后 求 解 诊 断 问 题 时 ， 我 们 选 择 了 一种 MaxSAT 求 解                                                      0.06
+                       [19]
+器——UwrMaxSAT                  进 行 求 解 , UwrMaxSAT 在 2020
+年 MaxSAT 评估中的加权组中表现最好.实验分别在                                                                    0.04
+
+ISCAS85 和 ITC99 这 2 组测试实例上执行，这 2 组测
+试 实 例 均 在 文献 [22] 中 使 用 .其 中 ， 第 1 组 测 试 实 例                                                   0.02
+
+包含 9 998 个测试用例，第 2 个测试实例包含 7 822 个
+测 试 用 例.本 文 提 出 的 OOE 方 法 用 C++实 现 并 使 用
+                                                                                                 0             0.02    0.04           0.06            0.08   0.10
+G++编 译 .我 们 的 实 验 是 在 Ubuntu 16.04 Linux 和 Intel                                                                      OOE方法的运行时间 / s
+Xeon E5-1607@3.00 GHz, 16 GB RAM 上进行.
+                                                                             Fig. 3                  Comparison of the run time of BE and OOE approaches
+    图 3 和 图 4 分 别 给 出 OOE 方 法 与 BE 方 法 和                                                             on ISCAS85 benchmark
+DOE 方 法 在 求 解 ISCAS85 实 例 时 ， MaxSAT 求 解 器                                    图3                  BE 和 OOE 方法在 ISCAS85 实例上的运行时间比较
+ 100                                                                                                                           计算机研究与发展              2023，60 （1）
+
+                     0.10                                                       无 法 求 解 的 一 些 测 试 实 例.使 用 OOE， DOE， BE 方 法
+                                                                                不能得到一个解的测试实例的个数分别为 4 939，5 197，
+                     0.08                                                       6 669.在 求 解 实 例 个 数 上 OOE 方 法 明 显 优 于 BE 和
+                                                                                DOE 方 法 ， 除 此 之 外 ， 在 大 多 数 情 况 下 ， 相 比 于 BE
+  DOE方法的运行时间 / s
+
+
+
+
+                     0.06                                                       和 DOE 方法，使用 OOE 方法能在更短的时间内得到
+                                                                                一个诊断解.
+                     0.04                                                                           1.0
+
+
+                     0.02
+                                                                                                    0.8
+
+
+
+
+                                                                                  DOE方法的运行时间 / s
+                        0          0.02      0.04     0.06     0.08      0.10                       0.6
+
+                                          OOE方法的运行时间 / s
+
+ Fig. 4                 Comparison of the run time of DOE and OOE approaches                        0.4
+                        on ISCAS85 benchmark
+ 图4                    DOE 和 OOE 方法在 ISCAS85 实例上的运行时间比较
+                                                                                                    0.2
+
+对于大多数测试实例，OOE 和 DOE 方法可以在 0.1 s
+内 通过 MaxSAT 求 解 器 返 回 诊 断 结 果 .用 BE 方 法 求                                                            0             0.2         0.4         0.6     0.8     1.0
+解时，有 1 431 个测试实例不能在时间限制内得到一                                                                                               OOE方法的运行时间 / s
+
+个 诊 断 解 ； 但 是 对于 OOE 和 DOE 方 法 ， 只 有 350 个                                       Fig. 6               The run time of DOE and OOE approaches on ITC99
+实例不能在 0.1 s 内得到一个诊断解.此外，如图 4 中                                                                        benchmark
+
+所 示 ， 对 于 大 多 数 测 试 实 例 ，OOE 方 法 要 明 显 优 于                                        图6                  DOE 和 OOE 方法在 ITC99 实例上的运行时间比较
+
+DOE 方法.                                                                                            在 ITC99 实 例 和 ISCAS85 实 例 上 的 详 细 实 验 结
+                    图 5 和 图 6 分 别 显 示 了 在 ITC99 实 例 上 OOE 方                     果分别如表 1 和表 2 所示：
+法与 BE 及 DOE 方 法 在 求 解 诊 断 问 题 时 MaxSAT 求
+                                                                                                     Table 1      Solved Results for ITC99 Benchmark
+解器运行时间方面的比较.我们设置 MaxSAT 求解器
+                                                                                                           表1       在 ITC99 实例上的求解结果
+的 时 间 限 制为 1 s.坐 标 轴 上 的 点 表 示 在 给 定 时 间 内
+                                                                                                                          所用时间比竞争                 所用时间比竞争
+                      1.0                                                       电路名称                      观测个数           对手短的实例个数                对手短的实例个数
+                                                                                                                                                                [22]
+                                                                                                                         OOE         BE          OOE     DOE
+
+                                                                                  b14                      919           433         164          569       2
+                      0.8
+                                                                                  b15                      995           663         188          819       2
+    BE方法的运行时间 / s
+
+
+
+
+                                                                                  b17                     1 000          946          54         1 000      0
+                      0.6
+                                                                                  b18                     1 000          884          46          917       2
+
+                                                                                  b19                     1 000          823          56          833      42
+                      0.4
+                                                                                  b20                      997           596         222          782       0
+
+                                                                                  b21                      919           636         166          780       0
+                      0.2
+                                                                                  b22                      992           722         223          932       0
+
+
+                                                                                                   在 2 组表中，我们分别列出了 4 组数据.第 1 列显
+                        0           0.2      0.4       0.6      0.8      1.0
+                                          OOE方法的运行时间 / s                        示 电 路 名 称 ，第 2 列 显 示 测 试 实 例 的 数 量 .第 3~6 列
+
+                    Fig. 5    The run time of BE and OOE approaches on ITC99
+                                                                                显示 OOE 方法求解诊断时所用时间比竞争对手短的
+                              benchmark                                         实 例 个 数.从 表 1 和 表 2 可 以 看 出 ， 对 每 一 个 电 路 进
+            图5               BE 和 OOE 方法在 ITC99 实例上的运行时间比较                      行诊断问题求解时，OOE 方法都是可行的，且求解结
+周慧思等：基于模型诊断的一种新编码方法                                                                                                                             101
+
+
+果显示，相比于 DOE 及 BE 方法，OOE 方法都有明显                                            表数据的绘制；张立明负责提出文章修改意见, 指导
+的优势.特别是在 c880 电路上，OOE 方法在所有 1 182                                         文章写作.
+个 测 试 实 例 中 的 实 验 结 果 均 优于 BE 方 法 ， 有 97.8%
+的实例的实验结果优于 DOE 方法.                                                                                   参      考        文    献
+
+           Table 2     Solved Results for ISCAS85 Benchmark                ［1］ Reiter R. A theory of diagnosis from first principles[J]. Artificial
+                表2         在 ISCAS85 实例上的求解结果                                     Intelligence, 1987, 32（1）: 57−95
+                              所用时间比竞争            所用时间比竞争                   ［2］ Torlak E, Chang F S H, Jackson D. Finding minimal unsatisfiable
+电路名称          观测个数           对手短的实例个数           对手短的实例个数                          cores of declarative specifications[C] //Proc of the 13th Int Symp on
+                                                                   [22]
+                             OOE       BE        OOE      DOE                     Formal Methods. Berlin: Springer, 2008: 326–341
+     c17             63        48       14         56          7           ［3］ Safarpour S, Mangassarian H, Veneris A, et al. Improved design
+
+    c432             301      280       17        278         23                  debugging using maximum satisfiability[C] //Proc of the 7th Formal
+                                                                                  Methods in Computer Aided Design. Piscataway, NJ: IEEE, 2007:
+    c499             835      734       96        760         71
+                                                                                  13–19
+    c880        1 182        1 182       0       1 157        20
+                                                                           ［4］ Jannach D, Schmitz T. Model-based diagnosis of spreadsheet
+    c1355            836      719      113        832          4                  programs: A constraint-based debugging approach[J]. Automated
+    c1908            864      664      182        834         12                  Software Engineering, 2016, 23（1）: 105−144
+
+    c2670       1 162        1 128      34       1 158         4           ［5］ Jose M, Majumdar R. Cause clue clauses: Error localization using
+                                                                                  maximum satisfiability[J]. ACM SIGPLAN Notices, 2011, 46（6）:
+    c3540            756      705       51        756          0
+                                                                                  437−446
+    c5315       2 038        2 028      10       2 038         0
+                                                                           ［6］ Feldman A, Provan G M, Van Gemund A J C. Computing minimal
+    c6288            404      246      158        398          6                  diagnoses by greedy stochastic search[C] //Proc of the 23rd AAAI
+    c7552       1 557        1 536      21       1 557         0                  Conf on Artificial Intelligence. Palo Alto, CA: AAAI, 2008: 911–918
+                                                                           ［7］ Siddiqi S A, Huang Jinbo. Hierarchical diagnosis of multiple faults
+                                                                                  [C] //Proc of the 20th Int Joint Conf on Artificial Intelligence. San
+                                                                                  Francisco, CA: Morgan Kaufmann, 2007: 581–586
+6     总          结
+                                                                           ［8］ Jannach D, Schmitz T, Shchekotykhin K M. Parallelized hitting set
+                                                                                  computation for model-based diagnosis[C] //Proc of the 29th AAAI
+      目前，很多基于 SAT 的 MBD 方法把 MaxSAT 编                                              Conf on Artificial Intelligence. Palo Alto, CA: AAAI, 2015: 1503 –
+码作为分析 MBD 问题的一个基本步骤.本文在面向                                                         1510
+                                                                           ［9］ Ansótegui C, Bonet M L, Levy J. SAT-based MaxSAT algorithms[J].
+支配者编码的方法研究基础之上，提出一种 OOE 的
+                                                                                  Artificial Intelligence, 2013, 196: 77–105
+面向观测的编码方法，显著减少了 MBD 编码后子句                                                 ［10］ Feldman A, Provan G, de Kleer J. Solving model-based diagnosis
+的数量，进而降低了 MaxSAT 求解诊断的难度，提高                                                       problems with Max-SAT solvers and vice versa[C] //Proc of the 21st
+
+了 求 解 诊 断 的 效 率.本 文 提 出 了 2 种 方 法 用 于 提 高                                         Int Workshop on Principles of Diagnosis. New York: PHM Society,
+                                                                                  2010: 185–192
+OOE 的效率.首先，根据诊断系统的输入观测和输出
+                                                                          ［11］ Stern R T, Kalech M, Feldman A. Exploring the duality in conflict-
+观测对过滤边进行约简.其次，利用基于观测的过滤                                                           directed model-based diagnosis[C] //Proc of the 26th AAAI Conf on
+节点，在编码时对一些组件进行约简，进而不被编码                                                           Artificial Intelligence. Palo Alto, CA: AAAI, 2012: 828–834
+
+到 MBD 问题的子句中.实验结果表明，通过找到更多                                                ［12］ Lamraoui S M, Nakajima S. A formula-based approach for automatic
+                                                                                  fault localization of imperative programs[C] //Proc of the 19th Int
+的基于观测的过滤节点和基于观测的过滤边，能有
+                                                                                  Conf on Formal Engineering Methods. Berlin: Springer, 2014: 251 –
+效 减 少 编 码 后 子 句 集 规 模 ， 进 而 提 高 基于 MaxSAT                                         266
+计算诊断解的效率.OOE 方法在 ISCAS85 系统和 ITC99                                        ［13］ Lamraoui S M, Nakajima S. A formula-based approach for automatic
+
+系统的基准测试实例上求解诊断是高效的.在未来的                                                           fault localization of multi-fault programs[J]. Journal of Information
+                                                                                  Processing, 2016, 24（1）: 88−98
+研究中，将探索多观测下 OOE 方法的扩展算法.
+                                                                          ［14］ Ignatiev A, Morgado A, Weissenbacher G. Model-based diagnosis
+                                                                                  with multiple observations[C] //Proc of the 28th Int Joint Conf on
+
+      作 者 贡 献 声 明 ：周 慧 思 负 责 文 章 主 体 撰 写 和 修                                      Artificial Intelligence. San Francisco, CA: Morgan Kaufmann, 2019:
+                                                                                  1108–1115
+订，文献资料的分析、整理及文章写作；欧阳丹彤负
+                                                                          ［15］ Ignatiev A, Morgado A, Marques-Silva J. Model based diagnosis of
+责确定综述选题，指导和督促完成相关文献资料的                                                            multiple observations with implicit hitting sets[J]. arXiv preprint,
+收集整理；田新亮负责文献资料的收集以及部分图                                                            arXiv: 1707.01972, 2017
+  102                                                                                       计算机研究与发展                     2023，60 （1）
+
+
+［16］ Feldman A, Provan G, Van Gemund A. Approximate model-based                  Zhou Huisi, born in 1995. PhD candidate. Her
+        diagnosis using greedy stochastic search[J]. Journal of Artificial       main research interests include MaxSAT problem
+        Intelligence Research, 2010, 38: 371–413                                 and model-based diagnosis.
+                                                      *
+［17］ Williams B C, Ragno R J. Conflict-directed A and its role in model-
+                                                                                 周慧思, 1995 年生. 博士研究生.主要研究方向
+        based embedded systems[J]. Discrete Applied Mathematics, 2007,
+                                                                                 为最大可满足性问题和基于模型诊断.
+        155（12）: 1562−159
+［18］ Darwiche A. Decomposable negation normal form[J]. Journal of the
+        ACM, 2001, 48（4）: 608−647                                                Ouyang Dantong, born in 1968. PhD, professor.
+［19］ Piotrów M. UwrMaxSAT: Efficient solver for MaxSAT and Pseudo-               Senior member of CCF. Her main research
+        Boolean problems[C] //Proc of the 32nd Int Conf on Tools with            interests include the model-based diagnosis, SAT
+        Artificial Intelligence. Piscataway, NJ: IEEE, 2020: 132–136
+                                                                                 problem and model checking.
+［20］ Metodi A, Stern R, Kalech M, et al. A novel SAT-based approach to
+                                                                                 欧 阳 丹 彤, 1968 年 生 .博 士 ， 教 授 .CCF 高 级 会
+        model based diagnosis[J]. Journal of Artificial Intelligence Research,
+        2014, 51: 377–411                                                        员.主要研究方向为基于模型诊断、可满足性
+［21］ De Kleer J. Hitting set algorithms for model-based diagnosis[C]             问题和模型检测.
+        //Proc of the 22nd Int Workshop on Priciples of Diagnosis. New York:
+        PHM Society, 2011: 100–105                                               Tian Xinliang, born in 1991. PhD candidate. His
+［22］ Marques-Silva J, Janota M, Ignatiev A, et al. Efficient model based         main   research   interests   include    model-based
+        diagnosis with maximum satisfiability[C] //Proc of the 24th Int Joint
+                                                                                 diagnosis and combinatorial optimization problem.
+        Conf on Artificial Intelligence. San Francisco, CA: Morgan Kaufmann,
+                                                                                 田新亮, 1991 年生.博士研究生.主要研究方向
+        2015: 1966–1972
+                                                                                 为基于模型诊断和组合优化问题.
+［23］ Liu Meng, Ouyang Dantong, Liu Bowen, et al. Grouped diagnosis
+        approach using the feature of problem[J]. Acta Elecronica Sinica,
+        2018, 46（3）: 589−594 （in Chinese）                                        Zhang Liming, born in 1980. PhD, senior
+        （刘梦，欧阳丹彤，刘伯文，等. 结合问题特征的分组式诊断方法[J].                                       engineer. Senior member of CCF. His main
+        电子学报，2018，46（3）：589−594）
+                                                                                 research interests include model-based diagnosis
+［24］ Ouyang Dantong, Liu Bowen, Liu Meng, et al. A block-based
+                                                                                 and SAT problem.
+        diagnostic method combining with the circuit structure[J]. Acta
+                                                                                 张 立 明, 1980 年 生 .博 士 ， 正 高 级 工 程 师 .CCF
+        Elecronica Sinica, 2018, 46（7）: 1571−1577 （in Chinese）
+        （欧阳丹彤，刘伯文，刘梦，等. 结合电路结构基于分块的诊断方                                           高级会员.主要研究方向为基于模型诊断和可
+        法[J]. 电子学报，2018，46（7）：1571−1577）                                         满足性问题.
+
