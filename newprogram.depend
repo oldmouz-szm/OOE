@@ -1,0 +1,41 @@
+# depslib dependency file v1.0
+1569469533 source:/home/dell/SAT/newprogram/pms.cpp
+	"basis_pms.h"
+	"pms.h"
+	<stdlib.h>
+
+1568372237 /home/dell/SAT/newprogram/basis_pms.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<cstdlib>
+	<cmath>
+	<cstring>
+	<queue>
+	<set>
+	<stdio.h>
+	<stdlib.h>
+	<cstdio>
+	<vector>
+	<fstream>
+	<string>
+	<sstream>
+	<cstring>
+	<cstdlib>
+	<map>
+	<queue>
+	<cstring>
+	<sstream>
+	<algorithm>
+
+1570177789 /home/dell/SAT/newprogram/pms.h
+	"basis_pms.h"
+	"deci.h"
+	<fstream>
+	<queue>
+	<vector>
+	<iostream>
+
+1527865744 /home/dell/SAT/newprogram/deci.h
+	"basis_pms.h"
+

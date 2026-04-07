@@ -1,43 +1,35 @@
-# Build outputs
-*.o
-*.obj
-*.exe
-
-# Local binaries
-/main
-/ooe_main
-/gen_b
-/new_syspp
-/mbd-suite-2014/main
-
-# Large benchmark/data folders
-/iscas85/
-/mbd-suite-2014/instances/
-/sys_server/
-/bin/
-/obj/
-
-# Local environment
+# Python virtual environment
 .venv/
+
+# Build artifacts
+bin/
+obj/
+*.o
+*.out
+main
+main_asan
+main_test
+gen_b
+new_syspp
+
+# Solver/generated intermediates
+remain_clauses*.wcnf
+remain_clauses.txt
+out1.txt
+
+# Temp and logs
+*.log
+/tmp/
 __pycache__/
 *.pyc
 
-# Generated experiment outputs
-remain_clauses.wcnf
-remain_clauses1.wcnf
-remain_clauses2.wcnf
-*_doe_ooe_*.csv
-*_doe_ooe_*_summary.txt
-*_doe_ooe_fix_*.csv
-*_doe_ooe_fix_*_summary.txt
-*_solver_cmp_*.csv
-*_solver_cmp_*_summary.txt
+# Generated report folders
+results/
+iscas85/.saved/
 
-# OS/editor
+# Large local papers (optional, keep out of repo)
+*.pdf
+
+# VS Code / OS
+.vscode/
 .DS_Store
-*.swp
-
-# IDE files
-*.cbp
-*.depend
-*.layout

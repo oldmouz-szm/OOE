@@ -205,17 +205,6 @@ void Satlike::allocate_memory()
 
 	best_array = new int [malloc_var_length];
 	temp_lit = new int [malloc_var_length];
-
-    for(int i=0; i<malloc_var_length; ++i)
-    {
-        gate[i].dominat_attr = 0;
-        gate[i].out_var = 0;
-        gate[i].first_clauses = 0;
-        gate[i].last_clauses = -1;
-        var_neighbor_count[i] = 0;
-        var_gate_neighbor_count[i] = 0;
-        in_gate[i] = 0;
-    }
 }
 
 void Satlike::free_memory()
@@ -363,41 +352,54 @@ vector<string> Satlike::split(const char *s, const char *delim)
 }
 
 string Satlike::split(string str){  //ȥ�����ҵ�[]�;�Ŷ���
-    string res;
-    int left = 0, right = str.size()-1;
-    int len = str.size();
-    while(str[left]=='[' || str[left]=='('){
-        left++;
-        len--;
+    if (str.empty())
+    {
+        return str;
     }
-    while(str[left]=='{')
+
+    int left = 0;
+    int right = static_cast<int>(str.size()) - 1;
+
+    while (left <= right && (str[left] == '[' || str[left] == '(' || str[left] == '{'))
     {
         left++;
-        len--;
     }
-    while(!isdigit(str[right])){
+    while (right >= left && !isdigit(static_cast<unsigned char>(str[right])))
+    {
         right--;
-        len--;
     }
-    return str.substr(left,len);
+
+    if (right < left)
+    {
+        return "";
+    }
+    return str.substr(left, right - left + 1);
 }
 
 string Satlike::split_syspp(string str)
 {
-    string res;
-    int left = 0, right = str.size()-1;
-    int len = str.size();
-    while(str[left]=='(')
+    if (str.empty())
+    {
+        return str;
+    }
+
+    int left = 0;
+    int right = static_cast<int>(str.size()) - 1;
+
+    while (left <= right && str[left] == '(')
     {
         left++;
-        len--;
     }
-    while(str[right]==',' || str[right]==')')
+    while (right >= left && (str[right] == ',' || str[right] == ')'))
     {
         right--;
-        len--;
     }
-    return str.substr(left,len);
+
+    if (right < left)
+    {
+        return "";
+    }
+    return str.substr(left, right - left + 1);
 }
 
 string Satlike::findBegin(string str){
@@ -635,7 +637,6 @@ void Satlike::seq_dominate(char* filename,char* outfile){//����sys�ļ�
     flag = 0;
     flag1=true;
 
-    first_gate;
     first = true;
     idx = -1;
     m_cur_idx = 1;
@@ -700,7 +701,6 @@ void Satlike::seq_dominate(char* filename,char* outfile){//����sys�ļ�
     flag = 0;
     flag1=true;
 
-    first_gate;
     first = true;
     idx = -1;
     m_cur_idx = 1;
@@ -1053,13 +1053,7 @@ void Satlike::reduce_clauses()
 
         dominated_gate=Dominated[Dominated_count-1];
         Dominated_count--;
-        int first = gate[dominated_gate].first_clauses;
-        int last = gate[dominated_gate].last_clauses;
-        if(first<0 || last<0 || first>=num_clauses || last>=num_clauses || first>last)
-        {
-            continue;
-        }
-        for(int i=first;i<=last;i++)
+        for(int i=gate[dominated_gate].first_clauses;i<=gate[dominated_gate].last_clauses;i++)
         {
             if(clause_delete[i]==1)
             {
@@ -1255,13 +1249,7 @@ void Satlike::reduce_clauses()
 //            cout<<"Dominated_count"<<endl;
             dominated_gate=Dominated[Dominated_count-1];
             Dominated_count--;
-            int first = gate[dominated_gate].first_clauses;
-            int last = gate[dominated_gate].last_clauses;
-            if(first<0 || last<0 || first>=num_clauses || last>=num_clauses || first>last)
-            {
-                continue;
-            }
-            for(int i=first;i<=last;i++)
+            for(int i=gate[dominated_gate].first_clauses;i<=gate[dominated_gate].last_clauses;i++)
             {
                 if(clause_delete[i]==1)
                 {
@@ -1588,14 +1576,14 @@ void Satlike::assign_B()
                             tmp_lit.sense=clause_lit[c][0].sense;
                             if(B1_value[tmp_lit.var_num]==-1 || tmp_lit.sense==B1_value[tmp_lit.var_num])
                             {
-                                B1_value[tmp_lit.var_num]=tmp_lit.sense;
-                                B1_num[tmp_lit.var_num]++;
+                                B1_value[tmp_lit.var_num]=tmp_lit.var_num;
+                                B1_num++;
                                 q_com.push(tmp_lit);
                             }
                             else if(tmp_lit.sense!=B1_value[tmp_lit.var_num])
                             {
-                                B2_value[tmp_lit.var_num]=tmp_lit.sense;
-                                B2_num[tmp_lit.var_num]++;
+                                B2_value[tmp_lit.var_num]=tmp_lit.var_num;
+                                B2_num++;
                             }
                         }
                         break;
@@ -1748,7 +1736,7 @@ int Satlike::gain_F_value()
     int pre_unit_clause_count=0;
     bool new_dominated=false;
     int iteration=0;
-    while(iteration<1 && (!unit_out_clause.empty() || Filtered_Node_count!=0 || unit_clause_count!=pre_unit_clause_count || new_dominated==true || !Blocked_Edge.empty()))
+    while((iteration<1 && !unit_out_clause.empty()) || Filtered_Node_count !=0 || unit_clause_count!=pre_unit_clause_count || new_dominated==true || !Blocked_Edge.empty())
     {
 
         iteration++;
@@ -1869,18 +1857,14 @@ int Satlike::gain_F_value()
                 z_var=it->first;
                 out_gate_var=it->second;
                 in_gate_var=in_gate[it->first];
-                if(z_var<=0 || z_var>num_vars) continue;
-                if(var_gate_neighbor_count[z_var]<=0) continue;
                 //�����Ŵ�����ߵ�����ż�����ɾ��
                 int tmp_index_gate=0;
                 int tmp_gate=0;
-                int neighbor_count = var_gate_neighbor_count[z_var];
-                while(tmp_index_gate<neighbor_count && var_gate_neighbor[z_var][tmp_index_gate]!=out_gate_var)
+                while(var_gate_neighbor[z_var][tmp_index_gate]!=out_gate_var && var_gate_neighbor[z_var][tmp_index_gate]!=0)
                 {
                     tmp_index_gate++;//�ҵ�out_gate_var ��index
                     //cout<<var_gate_neighbor[z_var][tmp_index_gate]<<"  "<<out_gate_var<<endl;
                 }
-                if(tmp_index_gate>=neighbor_count) continue;
                 var_gate_neighbor[z_var][tmp_index_gate]=var_gate_neighbor[z_var][var_gate_neighbor_count[z_var]-1];
                 var_gate_neighbor_count[z_var]--;
                 int tmp_dominated;
@@ -2207,13 +2191,7 @@ int Satlike::reduce_clauses1()
 
         dominated_gate=Dominated[Dominated_count-1];
         Dominated_count--;
-        int first = gate[dominated_gate].first_clauses;
-        int last = gate[dominated_gate].last_clauses;
-        if(first<0 || last<0 || first>=num_clauses || last>=num_clauses || first>last)
-        {
-            continue;
-        }
-        for(int i=first;i<=last;i++)
+        for(int i=gate[dominated_gate].first_clauses;i<=gate[dominated_gate].last_clauses;i++)
         {
             if(clause_delete[i]==1)
             {
@@ -2229,7 +2207,7 @@ int Satlike::reduce_clauses1()
     int pre_unit_clause_count=0;
     bool new_dominated=false;
     //cout<<"unit_count:"<<unit_clause_count<<endl;
-    while(iteration<1 && (Filtered_Node_count!=0 || unit_clause_count!=pre_unit_clause_count || new_dominated==true || !Blocked_Edge.empty()))
+    while((iteration<1 && Filtered_Node_count !=0) || unit_clause_count!=pre_unit_clause_count || new_dominated==true || !Blocked_Edge.empty())
     {
 
         iteration++;
@@ -2348,17 +2326,13 @@ int Satlike::reduce_clauses1()
                 z_var=it->first;
                 out_gate_var=it->second;
                 in_gate_var=in_gate[it->first];
-                if(z_var<=0 || z_var>num_vars) continue;
-                if(var_gate_neighbor_count[z_var]<=0) continue;
                 //�����Ŵ�����ߵ�����ż�����ɾ��
                 int tmp_index_gate=0;
                 int tmp_gate=0;
-                int neighbor_count = var_gate_neighbor_count[z_var];
-                while(tmp_index_gate<neighbor_count && var_gate_neighbor[z_var][tmp_index_gate]!=out_gate_var)
+                while(var_gate_neighbor[z_var][tmp_index_gate]!=out_gate_var)
                 {
                     tmp_index_gate++;//�ҵ�out_gate_var ��index
                 }
-                if(tmp_index_gate>=neighbor_count) continue;
                 var_gate_neighbor[z_var][tmp_index_gate]=var_gate_neighbor[z_var][var_gate_neighbor_count[z_var]-1];
                 var_gate_neighbor_count[z_var]--;
                 int tmp_dominated;
@@ -2464,13 +2438,7 @@ int Satlike::reduce_clauses1()
 //            cout<<"Dominated_count"<<endl;
             dominated_gate=Dominated[Dominated_count-1];
             Dominated_count--;
-            int first = gate[dominated_gate].first_clauses;
-            int last = gate[dominated_gate].last_clauses;
-            if(first<0 || last<0 || first>=num_clauses || last>=num_clauses || first>last)
-            {
-                continue;
-            }
-            for(int i=first;i<=last;i++)
+            for(int i=gate[dominated_gate].first_clauses;i<=gate[dominated_gate].last_clauses;i++)
             {
                 if(clause_delete[i]==1)
                 {
@@ -2539,8 +2507,8 @@ vector<int> Satlike::get_var_clause_initial()
         }
     }
 //    cout<<" st.size: "<<st.size()<<endl;
-    int* num_v_tmp=new int[st.size()+1];
-    for(int i=1;i<=st.size();i++)
+    int* num_v_tmp=new int[num_vars+1];
+    for(int i=1;i<=num_vars;i++)
     {
         num_v_tmp[i]=-1;
     }
@@ -2553,13 +2521,13 @@ vector<int> Satlike::get_var_clause_initial()
             }
         }
     }
-    vector<int> get_result;
-    //num_v_tmp+1,num_v_tmp+num_v+1);
-    for(int i=1;i<=st.size();i++)
+      vector<int> get_result;
+      //num_v_tmp+1,num_v_tmp+num_v+1);
+      for(int i=1;i<=num_vars;i++)
         get_result.push_back(num_v_tmp[i]);
     int tmp=reduce1+gate_num+out_len+in_len;
     get_result.push_back(tmp);
-    get_result.push_back(st.size());
+      get_result.push_back(num_vars);
     return get_result;
 
 }
@@ -3370,6 +3338,7 @@ vector<string> Satlike::getRes(string str){
 void Satlike::input1(char* infile_name,char* obsfile,char* outfile_name,int in_len,int out_len,int gate_num,int obs_index){
     //char* outfile_name="./out_c17_CNF.txt";
     ofstream fout(outfile_name);
+    fout<<outfile_name<<endl;
     string str;
     int var_index=1;
     num_clauses=0;
@@ -3572,76 +3541,223 @@ void Satlike::input1(char* infile_name,char* obsfile,char* outfile_name,int in_l
             }
         }
     }
-    freopen(obsfile,"r",stdin);
-   // string s="i";
-    //fout<<"7 0"<<endl<<"8 0"<<endl<<"9 0"<<endl<<"-10 0"<<endl<<"11 0"<<endl;
-    string obs_str;
-    bool obs_flag = false;
-    bool obs_Flag= false;
-    while(cin>>obs_str){
+    ifstream obsin(obsfile);
+    if(!obsin)
+    {
+        cout<<"c failed to open obs file: "<<obsfile<<endl;
+        return;
+    }
 
-        obs_str=split(obs_str);
+    string obs_text((istreambuf_iterator<char>(obsin)), istreambuf_iterator<char>());
+    bool obs_found = false;
+    bool has_tuple_format = (obs_text.find('(') != string::npos && obs_text.find('[') != string::npos);
 
-        vector<string> res = split(obs_str.c_str(),",");
-        if(atoi(res[1].c_str())==obs_index){
-            obs_flag = true;
-        }//
-
-        if(obs_flag){
-            if(res.size()>2)
+    if(!has_tuple_format)
+    {
+        // Support alternative obs format:
+        //   # comment
+        //   <var_id>=<0|1>
+        // In this mode, one file corresponds to one sample, obs_index is ignored.
+        // Assignments are mapped by sorted numeric var_id order:
+        //   # inputs  -> i1, i2, ...
+        //   # outputs -> o1, o2, ...
+        istringstream iss(obs_text);
+        string line;
+        bool in_inputs = false;
+        bool in_outputs = false;
+        vector<pair<int, int> > input_assignments;
+        vector<pair<int, int> > output_assignments;
+        while(getline(iss, line))
+        {
+            if(line.empty())
             {
-//                cout<<res[2]<<endl;
-                res[2]=split(res[2]);                cout<<res[2]<<endl;
-                //cout<<in_len<<" "<out_len<<endl;
-                for(int i=2;i<=in_len+out_len+1;i++)
+                continue;
+            }
+            // trim spaces
+            size_t b = 0;
+            while(b < line.size() && isspace(static_cast<unsigned char>(line[b]))) b++;
+            size_t e = line.size();
+            while(e > b && isspace(static_cast<unsigned char>(line[e - 1]))) e--;
+            if(e <= b)
+            {
+                continue;
+            }
+            string t = line.substr(b, e - b);
+            if(t[0] == '#')
+            {
+                string lower = t;
+                for(size_t k = 0; k < lower.size(); k++)
                 {
-                    num_clauses++;
-                    const char* c=res[i].c_str();
-                    if(c[0]=='-')
-                    {
-                        fout<<"-"<<m[res[i].substr(1,res[i].size()-1)]<<" 0"<<endl;
-                    }
-                    else
-                    {
-                        fout<<m[res[i]]<<" 0"<<endl;
-                    }
+                    lower[k] = static_cast<char>(tolower(static_cast<unsigned char>(lower[k])));
                 }
+                if(lower.find("inputs") != string::npos)
+                {
+                    in_inputs = true;
+                    in_outputs = false;
+                }
+                else if(lower.find("outputs") != string::npos)
+                {
+                    in_outputs = true;
+                    in_inputs = false;
+                }
+                continue;
+            }
+            size_t eq = t.find('=');
+            if(eq == string::npos)
+            {
+                continue;
+            }
+            string lhs = t.substr(0, eq);
+            string rhs = t.substr(eq + 1);
+            if(lhs.empty() || rhs.empty())
+            {
+                continue;
+            }
+            int var_id = atoi(lhs.c_str());
+            int val = atoi(rhs.c_str());
+            if(in_inputs)
+            {
+                input_assignments.push_back(make_pair(var_id, val));
+            }
+            else if(in_outputs)
+            {
+                output_assignments.push_back(make_pair(var_id, val));
+            }
+            else
+            {
+                continue;
+            }
+        }
+
+        sort(input_assignments.begin(), input_assignments.end());
+        sort(output_assignments.begin(), output_assignments.end());
+
+        int in_limit = (int)input_assignments.size();
+        if(in_len > 0 && in_limit > in_len)
+        {
+            in_limit = in_len;
+        }
+        for(int i = 0; i < in_limit; i++)
+        {
+            string lit_name = string("i") + to_string(i + 1);
+            if(m.find(lit_name) == m.end())
+            {
+                continue;
+            }
+            int v = m[lit_name];
+            num_clauses++;
+            if(input_assignments[i].second == 0)
+            {
+                fout << "-" << v << " 0" << endl;
+            }
+            else
+            {
+                fout << v << " 0" << endl;
+            }
+            obs_found = true;
+        }
+
+        int out_limit = (int)output_assignments.size();
+        if(out_len > 0 && out_limit > out_len)
+        {
+            out_limit = out_len;
+        }
+        for(int i = 0; i < out_limit; i++)
+        {
+            string lit_name = string("o") + to_string(i + 1);
+            if(m.find(lit_name) == m.end())
+            {
+                continue;
+            }
+            int v = m[lit_name];
+            num_clauses++;
+            if(output_assignments[i].second == 0)
+            {
+                fout << "-" << v << " 0" << endl;
+            }
+            else
+            {
+                fout << v << " 0" << endl;
+            }
+            obs_found = true;
+        }
+
+        if(!obs_found)
+        {
+            cout<<"c warning: no valid assignments found in obs file "<<obsfile<<endl;
+        }
+        // Continue to shared tail logic below so both obs formats keep
+        // identical post-processing (e.g., gate-related unit clauses).
+    }
+    else
+    {
+        size_t pos = 0;
+        while(true)
+        {
+            size_t lparen = obs_text.find('(', pos);
+            if(lparen == string::npos)
+            {
                 break;
             }
-            else{
-                while(cin>>obs_str)
-                {
-                    //cout<<obs_str<<endl;
-                    obs_str=split(obs_str);
-                    //cout<<obs_str<<endl;
-                    vector<string> res = split(obs_str.c_str(),",");
-                    //cout<<res[1].c_str()<<endl;
-                    if(atoi(res[1].c_str())==(obs_index+1)){
+            size_t end = obs_text.find(").", lparen);
+            if(end == string::npos)
+            {
+                break;
+            }
 
-                        //cout<<"FALG"<<endl;
-                        obs_Flag=true;
-                        break;
+            string entry = obs_text.substr(lparen + 1, end - lparen - 1);
+            string compact;
+            compact.reserve(entry.size());
+            for(size_t i = 0; i < entry.size(); i++)
+            {
+                unsigned char ch = static_cast<unsigned char>(entry[i]);
+                if(!isspace(ch))
+                {
+                    compact.push_back(entry[i]);
+                }
+            }
+
+            size_t comma1 = compact.find(',');
+            size_t comma2 = (comma1 == string::npos) ? string::npos : compact.find(',', comma1 + 1);
+            size_t lb = (comma2 == string::npos) ? string::npos : compact.find('[', comma2 + 1);
+            size_t rb = compact.rfind(']');
+            if(comma1 == string::npos || comma2 == string::npos || lb == string::npos || rb == string::npos || rb < lb)
+            {
+                pos = end + 2;
+                continue;
+            }
+
+            int cur_obs_index = atoi(compact.substr(comma1 + 1, comma2 - comma1 - 1).c_str());
+            if(cur_obs_index == obs_index)
+            {
+                string payload = compact.substr(lb + 1, rb - lb - 1);
+                vector<string> lits = split(payload.c_str(), ",");
+                for(size_t i = 0; i < lits.size(); i++)
+                {
+                    if(lits[i].empty())
+                    {
+                        continue;
+                    }
+                    num_clauses++;
+                    if(lits[i][0] == '-')
+                    {
+                        fout<<"-"<<m[lits[i].substr(1, lits[i].size() - 1)]<<" 0"<<endl;
                     }
                     else
                     {
-                        for(int i=0;i<res.size();i++)
-                        {
-                            num_clauses++;
-                            const char* c=res[i].c_str();
-                            if(c[0]=='-')
-                            {
-                                fout<<"-"<<m[res[i].substr(1,res[i].size()-1)]<<" 0"<<endl;
-                            }
-                            else
-                            {
-                                fout<<m[res[i]]<<" 0"<<endl;
-                            }
-                        }
+                        fout<<m[lits[i]]<<" 0"<<endl;
                     }
                 }
+                obs_found = true;
+                break;
             }
-            if(obs_Flag==true)
-            {break;}
+
+            pos = end + 2;
+        }
+
+        if(!obs_found)
+        {
+            cout<<"c warning: obs index "<<obs_index<<" not found in "<<obsfile<<endl;
         }
     }
 
@@ -3711,6 +3827,10 @@ void Satlike::input1(char* infile_name,char* obsfile,char* outfile_name,int in_l
 
 void Satlike::build_instance(char *filename)
 {
+	char    line[1024];
+	string  line2;
+	char    tempstr1[10];
+	char    tempstr2[10];
 	int     cur_lit;
 	int     i,v,c;
     //int     temp_lit[MAX_VARS];
@@ -3722,8 +3842,36 @@ void Satlike::build_instance(char *filename)
 		exit(-1);
 	}
 
-    /*** build problem data structures of the instance ***/
+	/*** build problem data structures of the instance ***/
 
+    if(!getline(infile,line2))
+    {
+        cout<<"c fail to read from input file: "<<filename<<endl;
+        exit(-1);
+    }
+
+    while(line2.empty() || line2[0]!='s')
+	{
+        if(!getline(infile,line2))
+        {
+            cout<<"c invalid input format in "<<filename<<", cannot find expected header line."<<endl;
+            exit(-1);
+        }
+	}
+    int copy_len = static_cast<int>(line2.size());
+    if(copy_len > static_cast<int>(sizeof(line)) - 1)
+    {
+        copy_len = static_cast<int>(sizeof(line)) - 1;
+    }
+    for(i=0;i<copy_len;i++)
+	{
+		line[i]=line2[i];
+	}
+    line[copy_len] = '\0';
+    int read_items;
+
+	//read_items=sscanf(line, "%s %s %d %d", tempstr1, tempstr2, &num_vars, &num_clauses);
+    read_items=sscanf(line, "%9s", tempstr1);
     allocate_memory();
 
 	for (c = 0; c < num_clauses; c++)

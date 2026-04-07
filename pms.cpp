@@ -8,13 +8,20 @@ Satlike s;
 
 int main(int argc, char* argv[])
 {
-    if(argc < 6)
+	//start_timing();
+
+    if (argc < 6)
     {
-        cout << "Usage: " << argv[0] << " <sys> <tmp_cnf> <syspp> <obs> <obs_index>" << endl;
-        return 1;
+        cout << "Usage: " << argv[0] << " <sys> <cnf_in> <dom_file> <obs_file> <obs_index> [mode]" << endl;
+        cout << "  mode: be | doe | ooe | all (default: be)" << endl;
+        return -1;
     }
 
-	//start_timing();
+    string mode = "be";
+    if (argc >= 7)
+    {
+        mode = argv[6];
+    }
 
 
     //ofstream fout("out1.txt");
@@ -51,40 +58,33 @@ int main(int argc, char* argv[])
         char str[1024];
         in.getline(str,sizeof(str),'\n'); //读一行
         int tmp_clauses_num=s.num_c-s.gate_num;
-        while( !in.eof() && tmp_clauses_num>0 ) //文件未结束，循环
+        while(tmp_clauses_num>0 && in.getline(str,sizeof(str), '\n')) //文件未结束，循环
         {
-            char str[1024];
-            in.getline(str,sizeof(str),'\n'); //读一行
             tmp_clauses_num--;
             out<<s.gate_num+1<<" "<< str <<endl; //输出到文件
         }
         tmp_clauses_num=s.gate_num;
-        while( !in.eof() && tmp_clauses_num>0) //文件未结束，循环
+        while(tmp_clauses_num>0 && in.getline(str,sizeof(str), '\n')) //文件未结束，循环
         {
-            char str[1024];
-            in.getline(str,sizeof(str),'\n'); //读一行
             tmp_clauses_num--;
             out<<1<<" "<< str <<endl; //输出到文件
         }
-        //啵啵早上吃的啥？吃的啥？吃的神资源的米饭你咋知道
-        //因为我刚才好像问过你了 才想起来你吃了啥
-        //我吃的月饼和苹果  你bun能吃太多甜的 好的，月饼已经没了，之后就不吃甜的了 我等会就去吃午饭饭饭
-        //去哪吃  去楼下吃，砂刀削面 你咋不自己做吃  没买菜菜  nonono 因为你不想做  哈哈啊啊啊啊
-        //继续代码吧加油 ⛽️⛽️⛽️⛽️⛽️⛽️⛽️这是啥 是油？对， 加油的图标 哼唧 爱啵啵 ❤️❤️❤️❤️❤️哈哈哈哈哈拜拜 拜拜
         in.close();
         out.close();
         //cout<<num_v<<" "<<num_c<<endl;
     	//cout<<"build finish"<<endl;
-        s.dominated_relation(argv[3]);
-//    	cout<<"dominated relation finish"<<endl;
-//    	cout<<argv[2]<<endl;
-//    	cout<<argv[3]<<endl;
-//    	cout<<argv[4]<<endl;
-        //s.reduce_clauses();
-        int r1=s.reduce_clauses1();
-        s.save();
-        int r2=s.gain_F_value();
-    		cout << " DOE_reduction=" << r1 << " OOE_reduction=" << r2;
+        if (mode == "doe" || mode == "ooe" || mode == "all")
+        {
+            s.dominated_relation(argv[3]);
+            s.reduce_clauses1();
+        }
+
+        // OOE is built on top of the DOE preprocessing path in this implementation.
+        if (mode == "ooe" || mode == "all")
+        {
+            s.save();
+            s.gain_F_value();
+        }
 
 
     return 0;
